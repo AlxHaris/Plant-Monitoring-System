@@ -1,0 +1,40 @@
+//DHT22 + Soil Moisture Sensor
+
+#include <DHT.h>
+
+#define DHTPIN 2       // Digital pin connected to the DHT22
+#define DHTTYPE DHT22  // DHT 22 (AM2302)
+
+DHT dht(DHTPIN, DHTTYPE);
+
+const int soilMoisturePin = A0; // Soil moisture sensor
+
+void setup() {
+  Serial.begin(9600);
+  dht.begin();
+}
+
+void loop() {
+  // Read soil moisture
+  int soilValue = analogRead(soilMoisturePin);
+  float soilMoisturePercent = map(soilValue, 0, 1023, 0, 100);
+
+  // Read temperature and humidity
+  float temperature = dht.readTemperature(); // Celsius
+  float humidity = dht.readHumidity();       // Percentage
+
+  // Check if readings are valid
+  if (isnan(temperature) || isnan(humidity)) {
+    Serial.println("Failed to read from DHT sensor!");
+  } else {
+    // Send data via Serial
+    Serial.print("Soil:");
+    Serial.print(soilMoisturePercent);
+    Serial.print(",Temp:");
+    Serial.print(temperature);
+    Serial.print(",Humidity:");
+    Serial.println(humidity);
+  }
+
+  delay(2000); // 2-second interval
+}
