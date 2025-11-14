@@ -1,0 +1,133 @@
+import java.io.FileWriter;
+import java.io.IOException;
+// Base Sensor class
+class Sensor {
+    private String sensorId;
+    private String location;
+
+    public Sensor(String sensorId, String location) {
+        this.sensorId = sensorId;
+        this.location = location;
+    }
+
+    public String getSensorId() { return sensorId; }
+    public void setSensorId(String sensorId) { this.sensorId = sensorId; }
+
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
+    public double readData() { return 0.0; }
+
+    public void displayInfo() {
+        System.out.println("Sensor ID: " + sensorId + ", Location: " + location);
+    }
+}
+
+// Soil Moisture Sensor class
+class SoilMoistureSensor extends Sensor {
+    private double moistureLevel;
+
+    public SoilMoistureSensor(String sensorId, String location) {
+        super(sensorId, location);
+    }
+
+    @Override
+    public double readData() {
+        moistureLevel = Math.random() * 100; // Simulated value
+        return moistureLevel;
+    }
+
+    public void checkMoisture() {
+        double value = readData();
+        System.out.println("Soil Moisture: " + value + "%");
+        // Write data to file
+        try (FileWriter writer = new FileWriter("sensor_data.txt", true)) {
+            writer.write("Soil Sensor [" + getSensorId() + "] at " + getLocation() +
+                         " : " + value + "%\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        if (value < 30) System.out.println("Alert: Soil is dry. Start irrigation!");
+        else System.out.println("Soil moisture is sufficient.");
+    }
+}
+
+// Environment Sensor class (Temperature + Humidity)
+class EnvironmentSensor extends Sensor {
+    private double temperature;
+    private double humidity;
+
+    public EnvironmentSensor(String sensorId, String location) {
+        super(sensorId, location);
+    }
+
+    @Override
+    public double readData() {
+        temperature = 20 + Math.random() * 15; // 20-35°C
+        humidity = 40 + Math.random() * 40;    // 40-80%
+        return temperature;
+    }
+
+    public void checkEnvironment() {
+        readData();
+        System.out.println("Temperature: " + temperature + "°C");
+        System.out.println("Humidity: " + humidity + "%");
+
+        // Write data to file
+        try (FileWriter writer = new FileWriter("sensor_data.txt", true)) {
+            writer.write("Environment Sensor [" + getSensorId() + "] at " + getLocation() +
+                         " : Temp=" + temperature + "°C, Humidity=" + humidity + "%\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (temperature > 30) System.out.println("Alert: Temperature is high!");
+        if (humidity < 50) System.out.println("Alert: Humidity is low, consider watering!");
+    }
+
+    public double getHumidity() { return humidity; }
+    public double getTemperature() { return temperature; }
+}
+
+// Farm class to manage sensors
+class Farm {
+    private String farmName;
+    private Sensor[] sensors;
+
+    public Farm(String farmName, Sensor[] sensors) {
+        this.farmName = farmName;
+        this.sensors = sensors;
+    }
+
+    public void monitorFarm() {
+        System.out.println("Monitoring farm: " + farmName);
+        for (Sensor sensor : sensors) {
+            sensor.displayInfo();
+            if (sensor instanceof SoilMoistureSensor) {
+                ((SoilMoistureSensor) sensor).checkMoisture();
+            } else if (sensor instanceof EnvironmentSensor) {
+                ((EnvironmentSensor) sensor).checkEnvironment();
+            }
+            System.out.println("-----------------------------------");
+        }
+    }
+}
+
+// Main class
+public class SmartFarmingSystem {
+    public static void main(String[] args) {
+        // Create sensors
+        SoilMoistureSensor soilSensor = new SoilMoistureSensor("SM001", "Field 1");
+        EnvironmentSensor envSensor = new EnvironmentSensor("ENV001", "Field 1");
+
+        Sensor[] sensors = { soilSensor, envSensor };
+
+        // Create farm
+        Farm myFarm = new Farm("Green Valley Farm", sensors);
+
+        // Monitor farm
+        myFarm.monitorFarm();
+    }
+}
